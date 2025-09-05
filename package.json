@@ -1,0 +1,13 @@
+{
+	"name": "kenya-wards-geojson",
+	"version": "0.1.0",
+	"type": "module",
+	"dependencies": {
+		"drizzle-orm": "^0.44.5",
+		"drizzle-query-logger": "^1.1.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.3.1",
+		"typescript": "^5.9.2"
+	}
+}
