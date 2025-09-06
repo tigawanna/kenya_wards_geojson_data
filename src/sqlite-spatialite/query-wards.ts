@@ -208,12 +208,12 @@ async function main() {
 
 
 
-  // console.log("\n5. Find wards by county (Nairobi):");
-  // const nairobiWards = findWardsByCounty("Nairobi");
-  // console.log(`Found ${nairobiWards.length} wards in Nairobi`);
+  console.log("\n5. Find wards by county (Nairobi):");
+  const nairobiWards = findWardsByCounty("Nairobi");
+  console.log(`Found ${nairobiWards.length} wards in Nairobi`);
 
   console.log("\n6. Find wards in bounding box:");
-  const bboxWards = findWardsInBoundingBox(kiambuLat, kiambuLng,nairobiLat, nairobiLng);
+  const bboxWards = findWardsInBoundingBox(-1.35, 36.7, -1.2, 36.9);
   console.log(`Found ${bboxWards.length} wards in bounding box`);
 
   console.log("\nDatabase queries complete.");

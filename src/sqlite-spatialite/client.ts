@@ -5,7 +5,7 @@ export function initDb(): {
   db: BetterSqliteType;
 } {
   // Create a new database connection
-  const db = new Database("data/kenya_wards.db", { verbose: console.log });
+  const db = new Database("src/data/kenya_wards.db", { verbose: console.log });
 
   // Load the SpatiaLite extension
   try {
