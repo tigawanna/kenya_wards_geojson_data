@@ -4,8 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-pnpmfileChecksum: sha256-IPiOD8Vwb5BmlNhHXSeVConTrxOnxvAeiLwjZYmey3k=
-
 importers:
 
   .:
@@ -22,13 +20,13 @@ importers:
       drizzle-query-logger:
         specifier: ^1.1.0
         version: 1.1.0(drizzle-orm@0.44.5(@types/better-sqlite3@7.6.13)(better-sqlite3@12.2.0))(typescript@5.9.2)
-      tsx:
-        specifier: ^4.20.5
-        version: 4.20.5
     devDependencies:
       '@types/node':
         specifier: ^24.3.1
         version: 24.3.1
+      tsx:
+        specifier: ^4.20.5
+        version: 4.20.5
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
