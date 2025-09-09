@@ -5,7 +5,7 @@
 - [Kenya Counties, Constituencies & Wards](https://github.com/tigawanna/data-Kenya-Counties-Constituencies-Wards)
 - [Kenya County Assembly Boundaries (GeoJSON)](https://github.com/tigawanna/Kenya-County-Assembly-Boundaries)
 
-This directory contains the Kenya ward boundary data and scripts for integrating it into our PostGIS-enabled PostgreSQL database using Drizzle ORM.
+This directory contains the Kenya ward boundary data and scripts for integrating it into both PostGIS-enabled PostgreSQL and SQLite/SpatiaLite databases using Drizzle ORM.
 
 ## Overview
 
@@ -16,15 +16,30 @@ Our Kenya dataset includes:
 - **Administrative hierarchy**: County → Constituency → Ward → Sub-county
 - **CRS84/EPSG:4326** coordinate system (standard lat/lng)
 
-## Data Structure
+## Database Implementations
 
-### Source Files
+This project supports two database implementations:
+
+1. **PostgreSQL/PostGIS** - Full implementation with Drizzle ORM
+2. **SQLite/SpatiaLite** - Alternative implementation with better-sqlite3
+
+### PostgreSQL/PostGIS Implementation
+
+Located in `src/drizzle-pg-postgis/` directory.
+
+#### Features:
+- Complete ward boundary data with geometry column
+- Custom PostGIS types to work around Drizzle ORM limitations
+- Spatial query functions (point-in-polygon, nearest neighbor, etc.)
+- GiST indexes for optimized spatial queries
+
+#### Source Files
 
 - `wards_geojson.ts` - Complete ward boundary geometries in GeoJSON format
 - `sub_county.ts` - County-to-subcounty mappings for administrative hierarchy
 - `insert_wards.ts` - Data insertion script with geometry processing
 
-### Ward Properties
+#### Ward Properties
 
 Each ward feature contains:
 
@@ -44,18 +59,18 @@ Each ward feature contains:
 }
 ```
 
-## PostGIS Custom Types
+#### PostGIS Custom Types
 
 Due to a [known issue in Drizzle ORM](https://github.com/drizzle-team/drizzle-orm/issues/3040), the built-in `geometry()` function incorrectly generates `geometry(point)` columns regardless of the specified type and ignores SRID configuration.
 
-### The Problem
+##### The Problem
 
 ```typescript
 // This generates incorrect SQL: geometry(point) instead of geometry(MultiPolygon, 4326)
 geometry("geometry", { type: "multipolygon", srid: 4326 });
 ```
 
-### Our Solution: Custom Types
+##### Our Solution: Custom Types
 
 We created custom PostGIS types in `src/lib/drizzle/postgis-types.ts`:
 
@@ -79,7 +94,7 @@ export const point = customType<{
 });
 ```
 
-### Schema Implementation
+##### Schema Implementation
 
 ```typescript
 export const kenyaWards = pgTable(
@@ -100,6 +115,33 @@ export const kenyaWards = pgTable(
   ]
 );
 ```
+
+### SQLite/SpatiaLite Implementation
+
+Located in `src/sqlite-spatialite/` directory.
+
+#### Features:
+- Complete ward boundary data with geometry column
+- Integration with SpatiaLite extension for spatial functions
+- Spatial query functions similar to PostGIS implementation
+- Indexed geometry column for optimized spatial queries
+
+#### Seeded Database
+
+A pre-populated SQLite database with all Kenya ward boundaries is available at:
+`src/data/kenya_wards.sqlite`
+
+This database includes:
+- All 1,450+ wards with their boundary geometries
+- Properly indexed geometry column for spatial queries
+- Administrative hierarchy information (county, constituency, etc.)
+
+#### Source Files
+
+- `client.ts` - Database initialization with SpatiaLite extension
+- `insert-wards.ts` - Data insertion script
+- `query-wards.ts` - Spatial query functions
+- `utils.ts` - Utility functions for geometry handling
 
 ## Data Processing Pipeline
 
@@ -145,7 +187,7 @@ await db.insert(kenyaWards).values(wardsWithSubCounties);
 
 ## Spatial Queries
 
-We provide comprehensive spatial query functions in `src/lib/drizzle/ward-queries.ts`:
+We provide comprehensive spatial query functions in both implementations:
 
 ### Point-in-Polygon (Exact Match)
 
@@ -192,13 +234,21 @@ const ward = await findWardSmart(-1.2921, 36.8219);
 const nearbyWards = await findWardsWithinDistance(-1.2921, 36.8219, 5000);
 ```
 
-## Key PostGIS Functions Used
+## Key Spatial Functions Used
 
+### PostGIS (PostgreSQL)
 - `ST_Contains(ward_geometry, point)` - Point-in-polygon test
 - `ST_Distance(ward_geometry, point)` - Calculate distance
 - `geometry <-> point` - Fast distance operator for ordering
 - `ST_DWithin(geometry, point, distance)` - Distance filtering
 - `ST_GeomFromGeoJSON(json)` - Convert GeoJSON to PostGIS geometry
+- `ST_SetSRID(geometry, 4326)` - Set coordinate reference system
+
+### SpatiaLite (SQLite)
+- `ST_Contains(ward_geometry, point)` - Point-in-polygon test
+- `ST_Distance(ward_geometry, point)` - Calculate distance
+- `ST_DWithin(ward_geometry, point, distance)` - Distance filtering
+- `ST_GeomFromGeoJSON(json)` - Convert GeoJSON to SpatiaLite geometry
 - `ST_SetSRID(geometry, 4326)` - Set coordinate reference system
 
 ## Usage Examples
@@ -231,8 +281,13 @@ const ward = await findWardSmart(property.latitude, property.longitude);
 
 ### Prerequisites
 
+#### PostgreSQL/PostGIS
 1. **PostGIS Extension**: `CREATE EXTENSION IF NOT EXISTS postgis;`
 2. **UUID Extension**: `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";` (if using uuid_generate_v7)
+
+#### SQLite/SpatiaLite
+1. **SpatiaLite Extension**: Must be installed and accessible to better-sqlite3
+2. Database file will be created at `src/data/kenya_wards.sqlite` if it doesn't exist
 
 ### Indexes
 
@@ -248,7 +303,7 @@ const ward = await findWardSmart(property.latitude, property.longitude);
 ## Performance Considerations
 
 1. **Spatial Indexing**: GiST indexes provide O(log n) spatial query performance
-2. **Coordinate Order**: PostGIS uses (longitude, latitude) internally
+2. **Coordinate Order**: Both PostGIS and SpatiaLite use (longitude, latitude) internally
 3. **SRID Consistency**: All geometries use EPSG:4326 for compatibility
 4. **Batch Operations**: Use `db.insert().values()` for bulk ward insertions
 
@@ -259,6 +314,7 @@ const ward = await findWardSmart(property.latitude, property.longitude);
 1. **"Geometry type mismatch"**: Ensure custom types are used instead of built-in `geometry()`
 2. **"Invalid geometry"**: Source data may need `ST_MakeValid()` processing
 3. **"No SRID"**: Custom types automatically set SRID=4326
+4. **SpatiaLite extension errors**: Ensure the mod_spatialite extension is properly installed
 
 ### Validation Queries
 
