@@ -1,4 +1,5 @@
-import { sql, type SQL, type SQLiteTable } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
+import { type SQLiteTable } from 'drizzle-orm/sqlite-core';
 import { type InferSelectModel } from 'drizzle-orm';
 
 // Spatial functions for SpatiaLite
@@ -70,34 +71,34 @@ export class QueryBuilder<T extends SQLiteTable, TResult = InferSelectModel<T>> 
 
   // Typesafe WHERE field = value
   whereEquals<K extends ColumnName<T>>(field: K, value: any) {
-    const column = this.table[field];
+    const column = (this.table as any)[field];
     this.whereConditions.push(sql`${column} = ${value}`);
     return this;
   }
 
   // Typesafe WHERE field LIKE pattern
   whereLike<K extends ColumnName<T>>(field: K, pattern: string) {
-    const column = this.table[field];
+    const column = (this.table as any)[field];
     this.whereConditions.push(sql`${column} LIKE ${pattern}`);
     return this;
   }
 
   // Spatial WHERE conditions
   whereContains<K extends ColumnName<T>>(geomField: K, point: SQL) {
-    const column = this.table[geomField];
+    const column = (this.table as any)[geomField];
     this.whereConditions.push(spatialFunctions.contains(column, point));
     return this;
   }
 
   whereMbrWithin<K extends ColumnName<T>>(geomField: K, bbox: SQL) {
-    const column = this.table[geomField];
+    const column = (this.table as any)[geomField];
     this.whereConditions.push(spatialFunctions.mbrWithin(column, bbox));
     return this;
   }
 
   // ORDER BY
   orderBy<K extends ColumnName<T>>(field: K, direction: 'asc' | 'desc' = 'asc') {
-    const column = this.table[field];
+    const column = (this.table as any)[field];
     this.orderByFields.push({ field: column, direction });
     return this;
   }
@@ -110,7 +111,7 @@ export class QueryBuilder<T extends SQLiteTable, TResult = InferSelectModel<T>> 
 
   // ORDER BY distance
   orderByDistance<K extends ColumnName<T>>(geomField: K, point: SQL, direction: 'asc' | 'desc' = 'asc') {
-    const column = this.table[geomField];
+    const column = (this.table as any)[geomField];
     this.orderByFields.push({
       field: spatialFunctions.distance(column, point),
       direction
@@ -141,7 +142,7 @@ export class QueryBuilder<T extends SQLiteTable, TResult = InferSelectModel<T>> 
     }
 
     // FROM clause
-    const tableName = this.table[Symbol.for('drizzle:Name')] as string;
+    const tableName = (this.table as any)[Symbol.for('drizzle:Name')] as string;
     const fromClause = sql`FROM ${sql.identifier(tableName)}`;
 
     // WHERE clause
