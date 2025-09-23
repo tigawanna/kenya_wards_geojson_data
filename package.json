@@ -3,8 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"init-sqlite": "tsx src/sqlite-spatialite/insert-wards.ts",
-		"init-sqlite-optz": "tsx src/sqlite-spatialite/insert_wards_map_optz.ts"
+		"init-sqlite": "tsx src/sqlite-spatialite/insert_all.ts"
 
 	},
 	"dependencies": {
