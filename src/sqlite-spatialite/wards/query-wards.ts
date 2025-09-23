@@ -16,6 +16,19 @@ export interface Ward {
   geometry: string; // GeoJSON string
 }
 
+// Partial ward interface for selective column queries
+export interface PartialWard {
+  id?: number;
+  wardCode?: string;
+  ward?: string;
+  county?: string;
+  countyCode?: number;
+  subCounty?: string | null;
+  constituency?: string;
+  constituencyCode?: number;
+  geometry?: string; // GeoJSON string
+}
+
 /**
  * Find the ward that contains a given point (lat, lng).
  * This is the most accurate method - checks if the point is actually inside the ward boundary.
@@ -32,6 +45,56 @@ export function findWardByPoint(db: Database, latitude: number, longitude: numbe
   `);
   const result = stmt.get(longitude, latitude) as Ward | null;
   return result || null;
+}
+
+/**
+ * Find a ward by its ID
+ */
+export function findWardById(db: Database, id: number): Ward | null {
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      AsGeoJSON(geom) as geometry 
+    FROM kenya_wards
+    WHERE id = ?
+    LIMIT 1
+  `);
+  const result = stmt.get(id) as Ward | null;
+  return result || null;
+}
+
+/**
+ * Find a ward by its ward code
+ */
+export function findWardByCode(db: Database, wardCode: string): Ward | null {
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      AsGeoJSON(geom) as geometry 
+    FROM kenya_wards
+    WHERE ward_code = ?
+    LIMIT 1
+  `);
+  const result = stmt.get(wardCode) as Ward | null;
+  return result || null;
+}
+
+/**
+ * Find wards by partial ward name match
+ */
+export function findWardsByName(db: Database, wardName: string): Ward[] {
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      AsGeoJSON(geom) as geometry 
+    FROM kenya_wards 
+    WHERE LOWER(ward) LIKE LOWER(?)
+  `);
+  const results = stmt.all(`%${wardName}%`);
+  return results as Ward[];
 }
 
 /**
@@ -120,6 +183,44 @@ export function findWardsByCounty(db: Database, countyName: string): Ward[] {
   `);
   const results = stmt.all(countyName);
   return results as Ward[];
+}
+
+/**
+ * Find wards by county name with partial column selection
+ */
+export function findWardsByCountyPartial(
+  db: Database, 
+  countyName: string, 
+  columns: string[] = ['id', 'ward', 'county']
+): PartialWard[] {
+  // Validate columns to prevent SQL injection
+  const validColumns = {
+    'id': 'id',
+    'wardCode': 'ward_code',
+    'ward': 'ward',
+    'county': 'county',
+    'countyCode': 'county_code',
+    'subCounty': 'sub_county',
+    'constituency': 'constituency',
+    'constituencyCode': 'constituency_code',
+    'geometry': 'AsGeoJSON(geom) as geometry'
+  };
+  
+  // Filter to only valid columns
+  const selectedColumns = columns
+    .filter(col => validColumns.hasOwnProperty(col))
+    .map(col => validColumns[col as keyof typeof validColumns]);
+  
+  // Default to all columns if none are valid
+  const selectClause = selectedColumns.length > 0 ? selectedColumns.join(', ') : '*';
+  
+  const stmt = db.prepare(`
+    SELECT ${selectClause}
+    FROM kenya_wards 
+    WHERE LOWER(county) = LOWER(?)
+  `);
+  const results = stmt.all(countyName);
+  return results as PartialWard[];
 }
 
 /**
