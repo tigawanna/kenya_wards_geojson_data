@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { initDb } from '../../../src/sqlite-spatialite/client.js';
+import { initDb } from '@/sqlite-spatialite/client.js';
 import {
   findWardById,
   findWardByCode,
   findWardsByName,
   findWardsByCountyPartial
-} from '../../../src/sqlite-spatialite/wards/query-wards.js';
+} from '@/sqlite-spatialite/wards/query-wards.js';
 
 describe('SQLite Spatialite Ward Selection Queries', () => {
   let db: any;
