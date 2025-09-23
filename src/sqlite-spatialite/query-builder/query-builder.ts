@@ -1,112 +1,118 @@
-import { sql, type SQL } from 'drizzle-orm';
+import { sql, type SQL, type SQLiteTable } from 'drizzle-orm';
+import { type InferSelectModel } from 'drizzle-orm';
 
 // Spatial functions for SpatiaLite
 export const spatialFunctions = {
   // ST_Contains(geom, point) - Check if geometry contains a point
-  contains: (geomColumn: string, point: SQL) => 
-    sql`ST_Contains(${sql.identifier(geomColumn)}, ${point})`,
+  contains: (geomColumn: SQL, point: SQL) => 
+    sql`ST_Contains(${geomColumn}, ${point})`,
   
   // ST_Distance(geom1, geom2) - Calculate distance between geometries
-  distance: (geomColumn: string, point: SQL) => 
-    sql`ST_Distance(${sql.identifier(geomColumn)}, ${point})`,
+  distance: (geomColumn: SQL, point: SQL) => 
+    sql`ST_Distance(${geomColumn}, ${point})`,
   
   // MakePoint(x, y, srid) - Create a point geometry
   makePoint: (x: number, y: number, srid: number = 4326) => 
     sql`MakePoint(${x}, ${y}, ${srid})`,
   
   // AsGeoJSON(geom) - Convert geometry to GeoJSON
-  asGeoJSON: (geomColumn: string) => 
-    sql`AsGeoJSON(${sql.identifier(geomColumn)})`,
+  asGeoJSON: (geomColumn: SQL) => 
+    sql`AsGeoJSON(${geomColumn})`,
   
   // MbrWithin(geom, bbox) - Check if geometry's MBR is within bounding box
-  mbrWithin: (geomColumn: string, bbox: SQL) => 
-    sql`MbrWithin(${sql.identifier(geomColumn)}, ${bbox})`,
+  mbrWithin: (geomColumn: SQL, bbox: SQL) => 
+    sql`MbrWithin(${geomColumn}, ${bbox})`,
   
   // BuildMbr(minx, miny, maxx, maxy, srid) - Build minimum bounding rectangle
   buildMbr: (minx: number, miny: number, maxx: number, maxy: number, srid: number = 4326) => 
     sql`BuildMbr(${minx}, ${miny}, ${maxx}, ${maxy}, ${srid})`,
   
   // ST_Simplify(geom, tolerance) - Simplify geometry
-  simplify: (geomColumn: string, tolerance: number) => 
-    sql`ST_Simplify(${sql.identifier(geomColumn)}, ${tolerance})`,
+  simplify: (geomColumn: SQL, tolerance: number) => 
+    sql`ST_Simplify(${geomColumn}, ${tolerance})`,
 };
 
-type SelectField = {
-  expression: SQL;
-  alias?: string;
-};
+// Helper type to extract column names from a table
+type ColumnName<T extends SQLiteTable> = keyof T['_']['columns'];
 
-type WhereCondition = {
-  sql: SQL;
-};
-
-export class QueryBuilder {
-  private tableName: string;
-  private selectFields: SelectField[] = [];
-  private whereConditions: WhereCondition[] = [];
+// Typesafe query builder that uses Drizzle table schema
+export class QueryBuilder<T extends SQLiteTable, TResult = InferSelectModel<T>> {
+  private table: T;
+  private selectFields: { expression: SQL; alias?: string }[] = [];
+  private whereConditions: SQL[] = [];
   private orderByFields: { field: SQL; direction: 'asc' | 'desc' }[] = [];
   private limitValue?: number;
 
-  constructor(tableName: string) {
-    this.tableName = tableName;
+  constructor(table: T) {
+    this.table = table;
   }
 
-  // SELECT fields
-  select(fields: Record<string, SQL>) {
+  // Typesafe SELECT fields
+  select<TSelected extends Record<string, SQL>>(fields: TSelected): QueryBuilder<T, TSelected> {
     this.selectFields = Object.entries(fields).map(([alias, expression]) => ({
       expression,
       alias
     }));
-    return this;
+    return this as unknown as QueryBuilder<T, TSelected>;
+  }
+
+  // SELECT all fields
+  selectAll(): QueryBuilder<T, InferSelectModel<T>> {
+    this.selectFields = [{ expression: sql`*` }];
+    return this as QueryBuilder<T, InferSelectModel<T>>;
   }
 
   // WHERE conditions
   where(condition: SQL) {
-    this.whereConditions.push({ sql: condition });
+    this.whereConditions.push(condition);
     return this;
   }
 
-  // WHERE field = value
-  whereEquals(field: string, value: any) {
-    this.whereConditions.push({
-      sql: sql`${sql.identifier(field)} = ${value}`
-    });
+  // Typesafe WHERE field = value
+  whereEquals<K extends ColumnName<T>>(field: K, value: any) {
+    const column = this.table[field];
+    this.whereConditions.push(sql`${column} = ${value}`);
     return this;
   }
 
-  // WHERE field LIKE pattern
-  whereLike(field: string, pattern: string) {
-    this.whereConditions.push({
-      sql: sql`${sql.identifier(field)} LIKE ${pattern}`
-    });
+  // Typesafe WHERE field LIKE pattern
+  whereLike<K extends ColumnName<T>>(field: K, pattern: string) {
+    const column = this.table[field];
+    this.whereConditions.push(sql`${column} LIKE ${pattern}`);
     return this;
   }
 
   // Spatial WHERE conditions
-  whereContains(geomColumn: string, point: SQL) {
-    this.whereConditions.push({
-      sql: spatialFunctions.contains(geomColumn, point)
-    });
+  whereContains<K extends ColumnName<T>>(geomField: K, point: SQL) {
+    const column = this.table[geomField];
+    this.whereConditions.push(spatialFunctions.contains(column, point));
     return this;
   }
 
-  whereMbrWithin(geomColumn: string, bbox: SQL) {
-    this.whereConditions.push({
-      sql: spatialFunctions.mbrWithin(geomColumn, bbox)
-    });
+  whereMbrWithin<K extends ColumnName<T>>(geomField: K, bbox: SQL) {
+    const column = this.table[geomField];
+    this.whereConditions.push(spatialFunctions.mbrWithin(column, bbox));
     return this;
   }
 
   // ORDER BY
-  orderBy(field: SQL, direction: 'asc' | 'desc' = 'asc') {
+  orderBy<K extends ColumnName<T>>(field: K, direction: 'asc' | 'desc' = 'asc') {
+    const column = this.table[field];
+    this.orderByFields.push({ field: column, direction });
+    return this;
+  }
+
+  // ORDER BY with SQL expression
+  orderBySql(field: SQL, direction: 'asc' | 'desc' = 'asc') {
     this.orderByFields.push({ field, direction });
     return this;
   }
 
   // ORDER BY distance
-  orderByDistance(geomColumn: string, point: SQL, direction: 'asc' | 'desc' = 'asc') {
+  orderByDistance<K extends ColumnName<T>>(geomField: K, point: SQL, direction: 'asc' | 'desc' = 'asc') {
+    const column = this.table[geomField];
     this.orderByFields.push({
-      field: spatialFunctions.distance(geomColumn, point),
+      field: spatialFunctions.distance(column, point),
       direction
     });
     return this;
@@ -135,13 +141,13 @@ export class QueryBuilder {
     }
 
     // FROM clause
-    const fromClause = sql`FROM ${sql.identifier(this.tableName)}`;
+    const tableName = this.table[Symbol.for('drizzle:Name')] as string;
+    const fromClause = sql`FROM ${sql.identifier(tableName)}`;
 
     // WHERE clause
     let whereClause: SQL | null = null;
     if (this.whereConditions.length > 0) {
-      const conditions = this.whereConditions.map(cond => cond.sql);
-      whereClause = sql`WHERE ${conditions.join(' AND ')}`;
+      whereClause = sql`WHERE ${this.whereConditions.join(' AND ')}`;
     }
 
     // ORDER BY clause
@@ -171,7 +177,7 @@ export class QueryBuilder {
   }
 }
 
-// Helper function to create a query builder
-export function createQueryBuilder(tableName: string) {
-  return new QueryBuilder(tableName);
+// Helper function to create a typesafe query builder
+export function createQueryBuilder<T extends SQLiteTable>(table: T) {
+  return new QueryBuilder<T>(table);
 }

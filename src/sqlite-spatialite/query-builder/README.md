@@ -1,14 +1,15 @@
-# SpatiaLite Query Builder
+# Type-Safe SpatiaLite Query Builder
 
-A simple query builder for SpatiaLite spatial database operations.
+A type-safe query builder for SpatiaLite spatial database operations that integrates with Drizzle ORM table schemas.
 
 ## Features
 
-- Basic SELECT queries with field aliases
-- WHERE conditions (equals, like, etc.)
-- Spatial query functions (contains, distance, etc.)
-- ORDER BY and LIMIT clauses
-- Method chaining for building complex queries
+- **Type Safety**: Uses Drizzle table schemas to provide compile-time type checking
+- **SELECT queries** with field aliases and type-safe column names
+- **WHERE conditions** (equals, like, etc.) with type-safe column names
+- **Spatial query functions** (contains, distance, etc.) with type-safe column names
+- **ORDER BY and LIMIT** clauses with type-safe column names
+- **Method chaining** for building complex queries
 
 ## Usage
 
@@ -16,19 +17,20 @@ A simple query builder for SpatiaLite spatial database operations.
 
 ```typescript
 import { createQueryBuilder, spatialFunctions } from './src/sqlite-spatialite/query-builder';
+import { kenyaWards } from './src/sqlite-spatialite/schema';
 ```
 
-### Creating a Query
+### Creating a Type-Safe Query
 
 ```typescript
-// Create a query builder for a table
-const query = createQueryBuilder('kenya_wards');
+// Create a query builder with full type safety
+const query = createQueryBuilder(kenyaWards);
 ```
 
-### SELECT Fields
+### Type-Safe SELECT Fields
 
 ```typescript
-const query = createQueryBuilder('kenya_wards')
+const query = createQueryBuilder(kenyaWards)
   .select({
     id: sql`id`,
     ward: sql`ward`,
@@ -36,25 +38,25 @@ const query = createQueryBuilder('kenya_wards')
   });
 ```
 
-### WHERE Conditions
+### Type-Safe WHERE Conditions
 
 ```typescript
-// Basic WHERE conditions
-const query = createQueryBuilder('kenya_wards')
-  .whereEquals('county', 'Nairobi')
-  .whereLike('ward', '%Central%');
+// Basic WHERE conditions with type safety
+const query = createQueryBuilder(kenyaWards)
+  .whereEquals('county', 'Nairobi')  // 'county' must exist in kenyaWards schema
+  .whereLike('ward', '%Central%');   // 'ward' must exist in kenyaWards schema
 
-// Spatial WHERE conditions
+// Spatial WHERE conditions with type safety
 const point = spatialFunctions.makePoint(36.817223, -1.286389);
-const query = createQueryBuilder('kenya_wards')
-  .whereContains('geom', point);
+const query = createQueryBuilder(kenyaWards)
+  .whereContains('geom', point);  // 'geom' must exist in kenyaWards schema
 ```
 
-### ORDER BY and LIMIT
+### Type-Safe ORDER BY and LIMIT
 
 ```typescript
-const query = createQueryBuilder('kenya_wards')
-  .orderBy(sql`ward`, 'asc')
+const query = createQueryBuilder(kenyaWards)
+  .orderBy('ward', 'asc')  // 'ward' must exist in kenyaWards schema
   .limit(10);
 ```
 
@@ -74,15 +76,15 @@ The query builder provides several spatial functions:
 
 ```typescript
 const point = spatialFunctions.makePoint(36.817223, -1.286389);
-const query = createQueryBuilder('kenya_wards')
+const query = createQueryBuilder(kenyaWards)
   .select({
     id: sql`id`,
     ward: sql`ward`,
     county: sql`county`,
-    geometry: spatialFunctions.asGeoJSON('geom')
+    geometry: spatialFunctions.asGeoJSON(sql`geom`)
   })
-  .whereContains('geom', point)
-  .orderByDistance('geom', point, 'asc')
+  .whereContains('geom', point)        // 'geom' is type-checked
+  .orderByDistance('geom', point, 'asc') // 'geom' is type-checked
   .limit(5);
 ```
 
@@ -91,5 +93,5 @@ const query = createQueryBuilder('kenya_wards')
 Run tests with:
 
 ```bash
-npm run test:run -- tests/sqlite-spatialite/query-builder.test.ts
+npm run test:run -- tests/sqlite-spatialite/typesafe-query-builder.test.ts
 ```
