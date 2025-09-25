@@ -1,5 +1,5 @@
 import type { Database as BetterSqliteType } from "better-sqlite3";
-import { initDb } from "../client.js";
+import { initDb } from "../query-builder/client.js";
 import { readFileSync } from "fs";
 import { join } from "path";
 

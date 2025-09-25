@@ -1,6 +1,7 @@
 import type { Database as BetterSqliteType } from "better-sqlite3";
-import { initDb } from "../client.js";
+
 import { WARDS_GEOJSON } from "@/data/wards_geojson.js";
+import { initDb } from "../client.js";
 
 // Tolerance: 0.0005° ≈ 55m at equator — adjust if needed
 const SIMPLIFY_TOLERANCE = 0.0005;

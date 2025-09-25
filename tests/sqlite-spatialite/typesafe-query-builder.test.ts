@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { sql } from 'drizzle-orm';
-import { kenyaWards } from '../../src/sqlite-spatialite/schema.js';
+import { kenyaWards } from '../../src/sqlite-spatialite/query-builder/schema.js';
 import { createQueryBuilder, spatialFunctions } from '../../src/sqlite-spatialite/query-builder/index.js';
 
 describe('TypeSafe SpatiaLite Query Builder', () => {

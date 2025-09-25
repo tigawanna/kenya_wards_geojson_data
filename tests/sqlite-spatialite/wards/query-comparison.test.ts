@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { initDb } from '../../../src/sqlite-spatialite/client.js';
+import { initDb } from '../../../src/sqlite-spatialite/query-builder/client.js';
 import {
   findWardByPoint,
   findNearestWard,

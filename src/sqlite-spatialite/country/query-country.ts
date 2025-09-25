@@ -75,7 +75,7 @@ export function validateKenyaCoordinates(latitude: number, longitude: number): {
 
 // Test function
 async function main() {
-  const { initDb } = await import("../client.js");
+  const { initDb } = await import("../query-builder/client.js");
   const { db } = initDb();
   
   console.log("Testing Kenya border queries...\n");

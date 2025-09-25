@@ -1,6 +1,6 @@
 import { count } from "drizzle-orm";
 import type { Database } from "better-sqlite3";
-import { initDb } from "../client.js";
+import { initDb } from "../query-builder/client.js";
 
 
 // The structure of a ward, based on your Drizzle schema.
