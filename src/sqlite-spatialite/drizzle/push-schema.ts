@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import type * as DrizzleKit from "drizzle-kit/api";
-import * as schema from "../schema.js";
+import * as schema from "./schema.js";
 import { drizzleDb } from "./client.js";
 import { getTableConfig, SQLiteColumn } from "drizzle-orm/sqlite-core";
 
@@ -30,7 +30,7 @@ function tableToSql(table: any): string {
 
 // workaround for https://github.com/drizzle-team/drizzle-orm/issues/3913
 async function pushUwuSchema() {
-  console.log("\n", tableToSql(schema.kenyaWards));
+  console.log("\n", tableToSql(schema.wardEvents));
 }
 
 pushUwuSchema().catch(console.error);
