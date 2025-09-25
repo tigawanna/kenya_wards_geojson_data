@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { initDb } from '../../../src/sqlite-spatialite/query-builder/client.js';
+import { initDb } from "@/sqlite-spatialite/lib/client.js";
 import {
   findWardByPoint,
-  findNearestWard,
   findWardSmart,
   findWardsWithinDistance,
   findWardsByCounty,
   findWardsInBoundingBox,
-  findAllWardsSimplified
-} from '../../../src/sqlite-spatialite/wards/query-wards.js';
+  type Ward,
+  findNearestWard,
+  findAllWardsSimplified,
+} from '@/sqlite-spatialite/queries/ward-queries.js';
 
 describe('SQLite Spatialite Ward Queries', () => {
   let db: any;

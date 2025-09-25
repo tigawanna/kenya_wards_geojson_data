@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import type * as DrizzleKit from "drizzle-kit/api";
 import * as schema from "./schema.js";
-import { drizzleDb } from "./client.js";
+
 import { getTableConfig, SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 function tableToSql(table: any): string {

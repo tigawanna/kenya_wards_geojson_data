@@ -1,4 +1,5 @@
 import type { Database } from "better-sqlite3";
+import { initDb } from "@/sqlite-spatialite/lib/client.js";
 
 export interface Country {
   id: number;
@@ -75,7 +76,7 @@ export function validateKenyaCoordinates(latitude: number, longitude: number): {
 
 // Test function
 async function main() {
-  const { initDb } = await import("../query-builder/client.js");
+
   const { db } = initDb();
   
   console.log("Testing Kenya border queries...\n");

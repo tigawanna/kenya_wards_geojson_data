@@ -1,7 +1,4 @@
-import { count } from "drizzle-orm";
 import type { Database } from "better-sqlite3";
-import { initDb } from "../query-builder/client.js";
-
 
 // The structure of a ward, based on your Drizzle schema.
 export interface Ward {
@@ -16,6 +13,22 @@ export interface Ward {
   geometry: string; // GeoJSON string
 }
 
+export interface OptimizedWard {
+  id: number;
+  wardCode: string;
+  ward: string;
+  county: string;
+  countyCode: number;
+  subCounty: string | null;
+  constituency: string;
+  constituencyCode: number;
+  minx: number;
+  miny: number;
+  maxx: number;
+  maxy: number;
+  geometry: string; // Simplified GeoJSON string
+}
+
 // Partial ward interface for selective column queries
 export interface PartialWard {
   id?: number;
@@ -28,6 +41,12 @@ export interface PartialWard {
   constituencyCode?: number;
   geometry?: string; // GeoJSON string
 }
+
+/* 
+ * ============================================================================
+ * REGULAR QUERY FUNCTIONS
+ * ============================================================================
+ */
 
 /**
  * Find the ward that contains a given point (lat, lng).
@@ -260,76 +279,130 @@ export function findAllWardsSimplified(db: Database, tolerance: number = 0.001):
   return results as Ward[];
 }
 
-async function main() {
-  const { db } = await initDb()
-  
-  console.log("Testing spatial queries...\n");
-  const [nairobiLat, nairobiLng] = [-1.286389, 36.817223];
-  const nairobiPoint = findWardSmart(db, nairobiLat, nairobiLng);
-  console.log({
-    expected: "Nairobi central area",
-    county: nairobiPoint?.county,
-    constituency: nairobiPoint?.constituency,
-    ward: nairobiPoint?.ward,
-  });
+/* 
+ * ============================================================================
+ * OPTIMIZED QUERY FUNCTIONS (using bounding box pre-filtering)
+ * ============================================================================
+ */
 
-  const [kiambuLat, kiambuLng] = [-1.16972893282049, 36.82946781044468];
-  const kiambuPoint = findWardSmart(db, kiambuLat, kiambuLng);
-  console.log({
-    expected: "Kiambu riabia area",
-    county: kiambuPoint?.county,
-    constituency: kiambuPoint?.constituency,
-    ward: kiambuPoint?.ward,
-  });
-
-  const [kalamaLat, kalamaLng] = [-1.6725405427262028, 37.25285675999058];
-  const kalamaPoint = findWardSmart(db, kalamaLat, kalamaLng);
-  console.log({
-    expected: "Makueni Kalama area",
-    county: kalamaPoint?.county,
-    constituency: kalamaPoint?.constituency,
-    ward: kalamaPoint?.ward,
-  });
-
-  const [machakosLat, machakosLng] = [-0.8540481379611513, 37.69510191590412];
-  const machakosPoint = findWardSmart(db, machakosLat, machakosLng);
-  console.log({
-    expected: "Machakos kivaa area",
-    county: machakosPoint?.county,
-    constituency: machakosPoint?.constituency,
-    ward: machakosPoint?.ward,
-  });
-  
-
-  // console.log("\n2. Find nearest ward:");
-  // const nearestWard = findNearestWard(lat, lng);
-  // console.log(
-  //   nearestWard
-  //     ? `${nearestWard.ward}, ${nearestWard.county} (${nearestWard.distance.toFixed(2)}m)`
-  //     : "No ward found"
-  // );
-
-  console.log("\n3. Find wards within 2000 meters:");
-  const nearbyWards = findWardsWithinDistance(db, kiambuLat, kiambuLng, 2000);
-  console.log(`Found ${nearbyWards.map((ward) => ward.ward).join(", ")} wards within 2000m`);
-
-
-
-  console.log("\n5. Find wards by county (Nairobi):");
-  const nairobiWards = findWardsByCounty(db, "Nairobi");
-  console.log(`Found ${nairobiWards.length} wards in Nairobi`);
-
-  console.log("\n6. Find wards in bounding box:");
-  const bboxWards = findWardsInBoundingBox(db, -1.35, 36.7, -1.2, 36.9);
-  console.log(`Found ${bboxWards.length} wards in bounding box`);
-
-  console.log("\nDatabase queries complete.");
+/**
+ * Fast point-in-polygon using bounding box pre-filter + ST_Contains
+ */
+export function findWardByPointOptimized(db: Database, latitude: number, longitude: number): OptimizedWard | null {
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      minx, miny, maxx, maxy,
+      AsGeoJSON(geom) as geometry 
+    FROM kenya_wards
+    WHERE ? BETWEEN minx AND maxx 
+      AND ? BETWEEN miny AND maxy
+      AND ST_Contains(geom, MakePoint(?, ?, 4326))
+    LIMIT 1
+  `);
+  const result = stmt.get(longitude, latitude, longitude, latitude) as OptimizedWard | null;
+  return result || null;
 }
 
-main()
-  .then(() => {
-    console.log("\nAll queries executed successfully.");
-  })
-  .catch((error) => {
-    console.error("\nError in main execution:", error);
-  });
+/**
+ * Fast nearest ward using spatial index
+ */
+export function findNearestWardOptimized(
+  db: Database,
+  latitude: number,
+  longitude: number
+): (OptimizedWard & { distance: number }) | null {
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      minx, miny, maxx, maxy,
+      AsGeoJSON(geom) as geometry, 
+      ST_Distance(geom, MakePoint(?, ?, 4326)) as distance
+    FROM kenya_wards
+    ORDER BY ST_Distance(geom, MakePoint(?, ?, 4326))
+    LIMIT 1
+  `);
+  const result = stmt.get(longitude, latitude, longitude, latitude) as
+    | (OptimizedWard & { distance: number })
+    | null;
+  return result || null;
+}
+
+/**
+ * Fast bounding box query - no geometry parsing needed for zoom
+ */
+export function findWardsInBoundingBoxOptimized(
+  db: Database,
+  minLat: number,
+  minLng: number,
+  maxLat: number,
+  maxLng: number
+): OptimizedWard[] {
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      minx, miny, maxx, maxy,
+      AsGeoJSON(geom) as geometry 
+    FROM kenya_wards
+    WHERE NOT (maxx < ? OR minx > ? OR maxy < ? OR miny > ?)
+  `);
+  const results = stmt.all(minLng, maxLng, minLat, maxLat);
+  return results as OptimizedWard[];
+}
+
+/**
+ * Get wards by codes - optimized for map rendering
+ */
+export function getWardsByCodesOptimized(db: Database, wardCodes: string[]): OptimizedWard[] {
+  const placeholders = wardCodes.map(() => "?").join(",");
+  const stmt = db.prepare(`
+    SELECT 
+      id, ward_code as wardCode, ward, county, county_code as countyCode, 
+      sub_county as subCounty, constituency, constituency_code as constituencyCode,
+      minx, miny, maxx, maxy,
+      AsGeoJSON(geom) as geometry 
+    FROM kenya_wards
+    WHERE ward_code IN (${placeholders})
+  `);
+  const results = stmt.all(...wardCodes);
+  return results as OptimizedWard[];
+}
+
+/**
+ * Smart ward finder with bbox pre-filter
+ */
+export function findWardSmartOptimized(
+  db: Database,
+  latitude: number,
+  longitude: number
+): OptimizedWard | (OptimizedWard & { distance: number }) | null {
+  let ward = findWardByPointOptimized(db, latitude, longitude);
+  if (!ward) {
+    ward = findNearestWardOptimized(db, latitude, longitude);
+  }
+  return ward;
+}
+
+/**
+ * Calculate combined bounding box from multiple wards - no geometry parsing
+ */
+export function calculateCombinedBBox(wards: OptimizedWard[]): {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+} {
+  if (wards.length === 0) {
+    return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+  }
+
+  return {
+    minX: Math.min(...wards.map(w => w.minx)),
+    minY: Math.min(...wards.map(w => w.miny)),
+    maxX: Math.max(...wards.map(w => w.maxx)),
+    maxY: Math.max(...wards.map(w => w.maxy)),
+  };
+}

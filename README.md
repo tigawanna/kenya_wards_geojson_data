@@ -129,7 +129,7 @@ Located in `src/sqlite-spatialite/` directory.
 #### Seeded Database
 
 A pre-populated SQLite database with all Kenya ward boundaries is available at:
-`src/data/kenya_wards.sqlite`
+`src/data/kenya_wards.db`
 
 This database includes:
 - All 1,450+ wards with their boundary geometries
@@ -287,7 +287,7 @@ const ward = await findWardSmart(property.latitude, property.longitude);
 
 #### SQLite/SpatiaLite
 1. **SpatiaLite Extension**: Must be installed and accessible to better-sqlite3
-2. Database file will be created at `src/data/kenya_wards.sqlite` if it doesn't exist
+2. Database file will be created at `src/data/kenya_wards.db` if it doesn't exist
 
 ### Indexes
 
