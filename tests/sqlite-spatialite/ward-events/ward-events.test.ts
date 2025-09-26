@@ -2,13 +2,17 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { initDb } from '@/sqlite-spatialite/lib/client.js';
 import { setupDb } from '@/sqlite-spatialite/insert_all.js';
 import Database from 'better-sqlite3';
-import { TEST_DB_PATH } from '../../constants.js';
+import { TEST_DB_PATH } from '@tests/constants.js';
+import type { WardEventTypes } from '@tests/types.js';
 
 
-describe('Ward Events Triggers', () => {
+
+describe('Ward Events Triggers', { sequential: true }, () => {
   let db: Database.Database;
 
   beforeAll(async () => {
+    // const { db: testDb } = initDb(TEST_DB_PATH, true);
+    // await setupDb(testDb);
     const dbResult = initDb(TEST_DB_PATH);
     db = dbResult.db;
   });
@@ -25,15 +29,19 @@ describe('Ward Events Triggers', () => {
     `).run();
 
     // Check event was created
-    const insertEvents = db.prepare(`
+    const insertEvents = db
+      .prepare(
+        `
       SELECT * FROM kenya_ward_events WHERE event_type = 'INSERT' AND ward_id = ?
-    `).all(insertResult.lastInsertRowid);
+    `
+      )
+      .all(insertResult.lastInsertRowid) as WardEventTypes[];
 
     expect(insertEvents.length).toBe(1);
-    expect(insertEvents[0].trigger_by).toBe('TRIGGER');
-    expect(insertEvents[0].ward_code).toBe('TEST001');
-    expect(insertEvents[0].old_data).toBeNull();
-    expect(insertEvents[0].new_data).toBeTruthy();
+    expect(insertEvents[0]?.trigger_by).toBe('TRIGGER');
+    expect(insertEvents[0]?.ward_code).toBe('TEST001');
+    expect(insertEvents[0]?.old_data).toBeNull();
+    expect(insertEvents[0]?.new_data).toBeTruthy();
   });
 
   it('should fire UPDATE trigger when ward is modified', () => {
@@ -48,14 +56,18 @@ describe('Ward Events Triggers', () => {
     `).run(ward.id);
 
     // Check event was created
-    const updateEvents = db.prepare(`
+    const updateEvents = db
+      .prepare(
+        `
       SELECT * FROM kenya_ward_events WHERE event_type = 'UPDATE' AND ward_id = ?
-    `).all(ward.id);
+    `
+      )
+      .all(ward.id) as WardEventTypes[];
 
     expect(updateEvents.length).toBe(1);
-    expect(updateEvents[0].trigger_by).toBe('TRIGGER');
-    expect(updateEvents[0].old_data).toBeTruthy();
-    expect(updateEvents[0].new_data).toBeTruthy();
+    expect(updateEvents[0]?.trigger_by).toBe('TRIGGER');
+    expect(updateEvents[0]?.old_data).toBeTruthy();
+    expect(updateEvents[0]?.new_data).toBeTruthy();
   });
 
   it('should fire DELETE trigger when ward is removed', () => {
@@ -66,20 +78,28 @@ describe('Ward Events Triggers', () => {
     db.prepare("DELETE FROM kenya_wards WHERE id = ?").run(ward.id);
 
     // Check event was created
-    const deleteEvents = db.prepare(`
+    const deleteEvents = db
+      .prepare(
+        `
       SELECT * FROM kenya_ward_events WHERE event_type = 'DELETE' AND ward_id = ?
-    `).all(ward.id);
+    `
+      )
+      .all(ward.id) as WardEventTypes[];
 
     expect(deleteEvents.length).toBe(1);
-    expect(deleteEvents[0].trigger_by).toBe('TRIGGER');
-    expect(deleteEvents[0].old_data).toBeTruthy();
-    expect(deleteEvents[0].new_data).toBeNull();
+    expect(deleteEvents[0]?.trigger_by).toBe('TRIGGER');
+    expect(deleteEvents[0]?.old_data).toBeTruthy();
+    expect(deleteEvents[0]?.new_data).toBeNull();
   });
 
   it('should have proper event data structure', () => {
-    const events = db.prepare(`
+    const events = db
+      .prepare(
+        `
       SELECT * FROM kenya_ward_events WHERE ward_code = 'TEST001' ORDER BY timestamp
-    `).all();
+    `
+      )
+      .all() as WardEventTypes[];
 
     expect(events.length).toBe(3); // INSERT, UPDATE, DELETE
 

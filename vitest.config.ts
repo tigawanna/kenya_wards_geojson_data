@@ -13,9 +13,11 @@ export default defineConfig({
       exclude: ["src/data/**/*", "src/**/*.test.ts"],
     },
     alias: {
-      "@": path.resolve(__dirname, "./src")
+      "@": path.resolve(__dirname, "./src"),
+      "@tests": path.resolve(__dirname, "./tests"),
     },
     setupFiles: [],
     testTimeout: 10000,
+    fileParallelism:false
   },
 });
