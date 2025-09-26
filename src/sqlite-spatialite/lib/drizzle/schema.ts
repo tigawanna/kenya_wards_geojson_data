@@ -33,14 +33,21 @@ export const country = sqliteTable("kenya_country", {
 });
 
 export const wardEvents = sqliteTable("kenya_ward_events", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventSource: text("trigger_by", { enum: ["REPLAY", "TRIGGER"] }), // Identifies which client triggered the event
   eventType: text("event_type", { enum: ["INSERT", "UPDATE", "DELETE"] }).notNull(),
   wardId: integer("ward_id"), // NULL for INSERT events (before ID assigned)
   wardCode: text("ward_code"), // For tracking even when ID changes
   oldData: text("old_data"), // JSON of previous row data (NULL for INSERT)
   newData: text("new_data"), // JSON of new row data (NULL for DELETE)
-  timestamp: text("timestamp").notNull().default(sql`CURRENT_TIMESTAMP`),
-  syncStatus: text("sync_status", { enum: ["PENDING", "SYNCED", "FAILED"] }).notNull().default("PENDING"),
+  timestamp: text("timestamp")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  syncStatus: text("sync_status", { enum: ["PENDING", "SYNCED", "FAILED"] })
+    .notNull()
+    .default("PENDING"),
   syncAttempts: integer("sync_attempts").notNull().default(0),
   lastSyncAttempt: text("last_sync_attempt"),
   errorMessage: text("error_message"),

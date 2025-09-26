@@ -19,7 +19,7 @@ export async function setupDb(db: Database.Database) {
   // Don't close the DB connection here as the caller will manage it
 }
 
-// async function main() {
-//   setupDb(initDb().db);
-// }
-// main().catch(console.error);
+async function main() {
+  setupDb(initDb("geo_kenya.db",true).db);
+}
+main().catch(console.error);
