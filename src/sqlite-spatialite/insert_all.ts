@@ -14,9 +14,9 @@ export async function setupDb(db: Database.Database) {
     await createTriggers(db);
   } catch (error) {
     console.error("Error initializing the database:", error);
-  } finally {
-    db.close();
+    throw error; // Re-throw the error so callers know setup failed
   }
+  // Don't close the DB connection here as the caller will manage it
 }
 
 async function main() {

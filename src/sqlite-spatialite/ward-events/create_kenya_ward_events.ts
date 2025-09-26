@@ -36,8 +36,7 @@ export async function createWardEventsTable(db: Database.Database) {
   } catch (error) {
     console.error("💥 Error creating ward events table:", error);
     throw error;
-  } finally {
-    db.close();
   }
+  // Don't close the DB connection here as the caller will manage it
 }
 

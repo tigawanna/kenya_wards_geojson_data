@@ -3,16 +3,17 @@ import { initDb } from '@/sqlite-spatialite/lib/client.js';
 import { setupDb } from '@/sqlite-spatialite/insert_all.js';
 import Database from 'better-sqlite3';
 
+const dbPath = "test/test_ward_events.db"; 
 describe('Ward Events Triggers', () => {
   let db: Database.Database;
 
   beforeAll(async () => {
     // Setup test database
-    const { db: testDb } = initDb("test_ward_events.db");
+    const { db: testDb } = initDb(dbPath);
     await setupDb(testDb);
     
     // Reopen for testing
-    const dbResult = initDb("test_ward_events.db");
+    const dbResult = initDb(dbPath);
     db = dbResult.db;
   });
 

@@ -7,7 +7,7 @@ import { initDb } from "../lib/client.js";
  * whenever wards are inserted, updated, or deleted
  */
 
-async function createTriggers(db: Database.Database) {
+export async function createTriggers(db: Database.Database) {
   console.log("Creating triggers for kenya_wards table...");
 
   try {
@@ -165,15 +165,21 @@ async function createTriggers(db: Database.Database) {
   } catch (error) {
     console.error("Error creating triggers:", error);
     throw error;
-  } finally {
-    db.close();
   }
+  // Don't close the DB connection here as the caller will manage it
 }
 
 // Run the function if this script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { db } = initDb();
-  createTriggers(db);
+  (async () => {
+    const { db } = initDb();
+    try {
+      await createTriggers(db);
+    } catch (error) {
+      console.error("Error in createTriggers script:", error);
+      process.exit(1);
+    } finally {
+      db.close();
+    }
+  })();
 }
-
-export { createTriggers };

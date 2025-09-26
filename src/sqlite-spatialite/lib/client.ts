@@ -1,12 +1,18 @@
 import Database from "better-sqlite3";
 import type { Database as BetterSqliteType } from "better-sqlite3";
+import path from "path";
+import fs from "fs";
 
 export function initDb(name?: string): {
   db: BetterSqliteType;
 } {
   const basedbPath = `src/data`;
   const dbPath = name ? basedbPath + "/" + name : basedbPath + "/kenya_wards.db";
-  // Create a new database connection
+  // Create directory if it doesn't exist
+  const dir = path.dirname(dbPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }  // Create a new database connection
   const db = new Database(dbPath, { verbose: console.log });
 
   // Load the SpatiaLite extension

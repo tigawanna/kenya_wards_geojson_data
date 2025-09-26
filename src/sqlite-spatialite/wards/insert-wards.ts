@@ -167,12 +167,9 @@ export async function createAndInsertWards(db:Database.Database) {
     }
   } catch (error) {
     console.error("💥 Fatal error during database setup:", error);
-    process.exit(1);
-  } finally {
-    db.close();
-    console.log("🔌 Database connection closed.");
+    throw error; // Re-throw the error so callers know setup failed
   }
-
+  // Don't close the DB connection here as the caller will manage it
   console.log("🎉 Kenya Wards Database Setup Complete — Optimized for Mobile!");
 }
 
