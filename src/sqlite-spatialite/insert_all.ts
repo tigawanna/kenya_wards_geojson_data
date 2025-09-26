@@ -13,13 +13,13 @@ export async function setupDb(db: Database.Database) {
     await createWardEventsTable(db);
     await createTriggers(db);
   } catch (error) {
-    console.error("Error initializing the database:", error);
+    console.error("\nError initializing the database:", error);
     throw error; // Re-throw the error so callers know setup failed
   }
   // Don't close the DB connection here as the caller will manage it
 }
 
-async function main() {
-  setupDb(initDb().db);
-}
-main().catch(console.error);
+// async function main() {
+//   setupDb(initDb().db);
+// }
+// main().catch(console.error);

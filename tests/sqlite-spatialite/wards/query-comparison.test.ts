@@ -11,11 +11,12 @@ import {
   findAllWardsSimplified,
 } from '@/sqlite-spatialite/wards/ward-query-helpers.js';
 
+import { TEST_DB_PATH } from "@tests/constants.js";
 describe('SQLite Spatialite Ward Queries', () => {
   let db: any;
 
   beforeAll(async () => {
-    const dbResult = await initDb();
+    const dbResult = await initDb(TEST_DB_PATH);
     db = dbResult.db;
   });
 

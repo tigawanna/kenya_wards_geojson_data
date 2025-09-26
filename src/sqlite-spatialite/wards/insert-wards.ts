@@ -98,36 +98,36 @@ function insertWardsData(db: BetterSqliteType): void {
   console.log(`✅ Inserted ${WARDS_GEOJSON.features.length} wards.`);
 }
 
-function createWardEventsTable(db: BetterSqliteType): void {
-  // Create the events table to log changes to wards
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS kenya_ward_events (
-      id TEXT PRIMARY KEY,
-      event_type TEXT NOT NULL CHECK (event_type IN ('INSERT', 'UPDATE', 'DELETE')),
-      ward_id INTEGER,
-      ward_code TEXT,
-      old_data TEXT, -- JSON of previous row data (NULL for INSERT)
-      new_data TEXT, -- JSON of new row data (NULL for DELETE)
-      timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      sync_status TEXT NOT NULL DEFAULT 'PENDING' CHECK (sync_status IN ('PENDING', 'SYNCED', 'FAILED')),
-      sync_attempts INTEGER NOT NULL DEFAULT 0,
-      last_sync_attempt TEXT,
-      error_message TEXT,
-      client_id TEXT
-    );
-  `);
+// function createWardEventsTable(db: BetterSqliteType): void {
+//   // Create the events table to log changes to wards
+//   db.exec(`
+//     CREATE TABLE IF NOT EXISTS kenya_ward_events (
+//       id TEXT PRIMARY KEY,
+//       event_type TEXT NOT NULL CHECK (event_type IN ('INSERT', 'UPDATE', 'DELETE')),
+//       ward_id INTEGER,
+//       ward_code TEXT,
+//       old_data TEXT, -- JSON of previous row data (NULL for INSERT)
+//       new_data TEXT, -- JSON of new row data (NULL for DELETE)
+//       timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+//       sync_status TEXT NOT NULL DEFAULT 'PENDING' CHECK (sync_status IN ('PENDING', 'SYNCED', 'FAILED')),
+//       sync_attempts INTEGER NOT NULL DEFAULT 0,
+//       last_sync_attempt TEXT,
+//       error_message TEXT,
+//       client_id TEXT
+//     );
+//   `);
 
-  console.log("✅ Events table created.");
-}
+//   console.log("✅ Events table created.");
+// }
 
 function finalizeDb(db: BetterSqliteType): void {
   console.log("🔧 Optimizing database (VACUUM + ANALYZE)...");
   db.exec("VACUUM;");
   db.exec("ANALYZE;");
-  console.log("✅ Database optimized.");
+  console.log("✅ Database optimized.\n");
 
   // Create the events table before finalizing
-  createWardEventsTable(db);
+  // createWardEventsTable(db);
 
   // Set schema version for future migrations
   db.exec(`
@@ -146,7 +146,7 @@ function finalizeDb(db: BetterSqliteType): void {
     WARDS_GEOJSON.features.length.toString()
   );
 
-  console.log("✅ Schema version recorded.");
+  console.log("✅ Schema version recorded.\n");
 }
 
 export async function createAndInsertWards(db:Database.Database) {
@@ -163,14 +163,14 @@ export async function createAndInsertWards(db:Database.Database) {
       insertWardsData(db);
       finalizeDb(db);
     } else {
-      console.log(`ℹ️ Ward data already exists (${count.count} records). Skipping.`);
+      console.log(`\nℹ️ Ward data already exists (${count.count} records). Skipping.`);
     }
   } catch (error) {
-    console.error("💥 Fatal error during database setup:", error);
+    console.error("\n💥 Fatal error during database setup:", error);
     throw error; // Re-throw the error so callers know setup failed
   }
   // Don't close the DB connection here as the caller will manage it
-  console.log("🎉 Kenya Wards Database Setup Complete — Optimized for Mobile!");
+  console.log("\n🎉 Kenya Wards Database Setup Complete — Optimized for Mobile!");
 }
 
 // main().catch(console.error);

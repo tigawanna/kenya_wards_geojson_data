@@ -22,7 +22,7 @@ export async function createWardEventsTable(db: Database.Database) {
       );
     `);
 
-    console.log("✅ kenya_ward_events table created successfully.");
+    console.log("\n✅ kenya_ward_events table created successfully.");
 
     // Create indexes for better query performance
     db.exec(`
@@ -32,9 +32,9 @@ export async function createWardEventsTable(db: Database.Database) {
       CREATE INDEX IF NOT EXISTS idx_ward_events_event_type ON kenya_ward_events(event_type);
     `);
 
-    console.log("✅ Indexes created successfully.");
+    console.log("\n✅ Indexes created successfully.");
   } catch (error) {
-    console.error("💥 Error creating ward events table:", error);
+    console.error("\n💥 Error creating ward events table:", error);
     throw error;
   }
   // Don't close the DB connection here as the caller will manage it

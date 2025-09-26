@@ -2,18 +2,14 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { initDb } from '@/sqlite-spatialite/lib/client.js';
 import { setupDb } from '@/sqlite-spatialite/insert_all.js';
 import Database from 'better-sqlite3';
+import { TEST_DB_PATH } from '../../constants.js';
 
-const dbPath = "test/test_ward_events.db"; 
+
 describe('Ward Events Triggers', () => {
   let db: Database.Database;
 
   beforeAll(async () => {
-    // Setup test database
-    const { db: testDb } = initDb(dbPath);
-    await setupDb(testDb);
-    
-    // Reopen for testing
-    const dbResult = initDb(dbPath);
+    const dbResult = initDb(TEST_DB_PATH);
     db = dbResult.db;
   });
 

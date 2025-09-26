@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { initDb } from '@/sqlite-spatialite/lib/client.js';
 import Database from 'better-sqlite3';
+import { TEST_DB_PATH } from '@tests/constants.js';
 
 describe('SQLite Triggers', () => {
   let db: Database.Database;
 
   beforeAll(() => {
-    const dbResult = initDb();
+    const dbResult = initDb(TEST_DB_PATH);
     db = dbResult.db;
   });
 
