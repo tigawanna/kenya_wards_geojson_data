@@ -14,7 +14,7 @@ import {
   findAllWardsSimplified,
   type Ward,
   type PartialWard,
-} from '@/sqlite-spatialite/queries/ward-queries.js';
+} from '@/sqlite-spatialite/wards/ward-query-helpers.js';
 
 describe('SQLite Spatialite Ward Queries', () => {
   let db: any;

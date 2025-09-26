@@ -6,7 +6,7 @@ import {
   findWardsByCountyPartial,
   findWardsByName,
   type PartialWard,
-} from '@/sqlite-spatialite/queries/ward-queries.js';
+} from '@/sqlite-spatialite/wards/ward-query-helpers.js';
 
 describe('SQLite Spatialite Ward Selection Queries', () => {
   let db: any;
