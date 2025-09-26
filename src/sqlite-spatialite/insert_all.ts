@@ -1,33 +1,25 @@
-import { insertWards } from "./wards/insert-wards.js";
-import { insertCountry } from "./country/insert-country.js";
+import { createAndInsertWards } from "./wards/insert-wards.js";
+import { createAndInsertCountry } from "./country/insert-country.js";
 import { initDb } from "./lib/client.js";
-import Database from "better-sqlite3";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { createTriggers } from "./ward-events/create-triggers.js";
+import { createWardEventsTable } from "./ward-events/create_kenya_ward_events.js";
+import type Database from "better-sqlite3";
 
-function createTriggers(db: Database.Database) {
-  // Read the SQL file with triggers
-  const triggersSqlPath = join(process.cwd(), "src/sqlite-spatialite/create-triggers.sql");
-  const triggersSql = readFileSync(triggersSqlPath, "utf8");
-  
-  // Execute the triggers SQL
-  db.exec(triggersSql);
-  console.log("✓ Triggers created successfully");
-}
-
-async function main() {
-  await insertCountry();
-  await insertWards();
-  
+export async function setupDb(db: Database.Database) {
   // Create triggers after inserting data
-  const { db } = initDb();
   try {
-    createTriggers(db);
+    await createAndInsertCountry(db);
+    await createAndInsertWards(db);
+    await createWardEventsTable(db);
+    await createTriggers(db);
   } catch (error) {
-    console.error("Error creating triggers:", error);
+    console.error("Error initializing the database:", error);
   } finally {
     db.close();
   }
 }
 
-main().catch(console.error)
+async function main() {
+  setupDb(initDb().db);
+}
+main().catch(console.error);

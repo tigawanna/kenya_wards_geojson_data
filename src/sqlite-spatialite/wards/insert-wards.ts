@@ -1,7 +1,8 @@
 import type { Database as BetterSqliteType } from "better-sqlite3";
-
 import { WARDS_GEOJSON } from "@/data/wards_geojson.js";
-import { initDb } from "@/sqlite-spatialite/lib/client.js";
+import type Database from "better-sqlite3";
+
+
 // Tolerance: 0.0005° ≈ 55m at equator — adjust if needed
 const SIMPLIFY_TOLERANCE = 0.0005;
 
@@ -148,9 +149,9 @@ function finalizeDb(db: BetterSqliteType): void {
   console.log("✅ Schema version recorded.");
 }
 
-export async function insertWards() {
+export async function createAndInsertWards(db:Database.Database) {
   // Use a separate optimized database file
-  const { db } = initDb();
+  // const { db } = initDb();
 
   try {
     createWardsTable(db);

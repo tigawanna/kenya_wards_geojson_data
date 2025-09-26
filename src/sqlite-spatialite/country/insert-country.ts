@@ -2,6 +2,7 @@ import type { Database as BetterSqliteType } from "better-sqlite3";
 import { initDb } from "@/sqlite-spatialite/lib/client.js";
 import { readFileSync } from "fs";
 import { join } from "path";
+import type Database from "better-sqlite3";
 
 function createCountryTable(db: BetterSqliteType): void {
   db.exec(`DROP TABLE IF EXISTS country`);
@@ -65,8 +66,8 @@ function insertCountryData(db: BetterSqliteType): void {
   console.log(`✅ Inserted ${geojsonData.features.length} country features.`);
 }
 
-export async function insertCountry() {
-  const { db } = initDb();
+export async function createAndInsertCountry(db:Database.Database) {
+  // const { db } = initDb();
 
   try {
     createCountryTable(db);
