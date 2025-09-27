@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"init-sqlite": "tsx src/sqlite-spatialite/insert_all.ts",
+		"ward-cli": "tsx src/sqlite-spatialite/ward-events/cli.ts",
 		"test": "vitest",
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",
@@ -14,7 +15,8 @@
 		"better-sqlite3": "^12.2.0",
 		"drizzle-kit": "^0.31.4",
 		"drizzle-orm": "^0.44.5",
-		"drizzle-query-logger": "^1.1.0"
+		"drizzle-query-logger": "^1.1.0",
+		"zod": "^4.1.11"
 	},
 	"devDependencies": {
 		"@types/node": "^24.3.1",

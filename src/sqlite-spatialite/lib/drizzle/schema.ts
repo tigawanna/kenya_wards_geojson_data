@@ -54,7 +54,28 @@ export const wardEvents = sqliteTable("kenya_ward_events", {
   clientId: text("client_id"), // Identifies which client created the event
 });
 
+
+// Drizzle table schema with custom type for data array
+export const wardUpdates = sqliteTable("ward_updates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  version: integer("version").notNull(),
+  data: text("data").$type<WardUpdateData[]>().notNull(), // Custom type for JSON array
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  createdBy: text("created_by"),
+  description: text("description"),
+});
+
+export interface WardUpdateData {
+  id: number; // ward id
+  data: Partial<KenyaWardsSelect>; // partial object of updated row
+  event: 'create' | 'update' | 'delete';
+}
+
+
 // Infer the select types
 export type KenyaWardsSelect = InferSelectModel<typeof kenyaWards>;
 export type CountrySelect = InferSelectModel<typeof country>;
 export type WardEventsSelect = InferSelectModel<typeof wardEvents>;
+export type WardUpdatesSelect = InferSelectModel<typeof wardUpdates>;

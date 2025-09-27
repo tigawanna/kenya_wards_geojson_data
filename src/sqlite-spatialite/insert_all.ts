@@ -4,12 +4,14 @@ import { initDb } from "./lib/client.js";
 import { createTriggers } from "./ward-events/create-triggers.js";
 import { createWardEventsTable } from "./ward-events/create_kenya_ward_events.js";
 import type Database from "better-sqlite3";
+import { createWardUpdatesTable } from "./ward-events/create_ward_updates.js";
 
 export async function setupDb(db: Database.Database) {
   // Create triggers after inserting data
   try {
     await createAndInsertCountry(db);
     await createAndInsertWards(db);
+    await createWardUpdatesTable(db);
     await createWardEventsTable(db);
     await createTriggers(db);
   } catch (error) {
@@ -20,6 +22,6 @@ export async function setupDb(db: Database.Database) {
 }
 
 async function main() {
-  setupDb(initDb("geo_kenya.db",true).db);
+  setupDb(initDb("geo_kenya.db", true).db);
 }
 main().catch(console.error);
