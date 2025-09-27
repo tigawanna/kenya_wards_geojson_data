@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { initDb } from "@/sqlite-spatialite/lib/client.js";
-import { setupDb } from "@/sqlite-spatialite/insert_all.js";
+import { setupDb } from "@/sqlite-spatialite/init_sqlite_db.js";
 import Database from "better-sqlite3";
 import { TEST_DB_PATH } from "@tests/constants.js";
 
