@@ -36,9 +36,9 @@ export interface WardUpdates {
 
 export async function createWardUpdatesTable(db: Database.Database) {
   try {
-    // Create single ward_updates table with version number and data array
+    // Create single kenya_ward_updates table with version number and data array
     db.exec(`
-      CREATE TABLE IF NOT EXISTS ward_updates (
+      CREATE TABLE IF NOT EXISTS kenya_ward_updates (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         version INTEGER NOT NULL,
         data TEXT NOT NULL, -- JSON array of ward update objects
@@ -48,12 +48,12 @@ export async function createWardUpdatesTable(db: Database.Database) {
       );
     `);
 
-    console.log("✅ ward_updates table created successfully.");
+    console.log("✅ kenya_ward_updates table created successfully.");
 
     // Create indexes for better query performance
     db.exec(`
-      CREATE INDEX IF NOT EXISTS idx_ward_updates_version ON ward_updates(version);
-      CREATE INDEX IF NOT EXISTS idx_ward_updates_created_at ON ward_updates(created_at);
+      CREATE INDEX IF NOT EXISTS idx_kenya_ward_updates_version ON kenya_ward_updates(version);
+      CREATE INDEX IF NOT EXISTS idx_kenya_ward_updates_created_at ON kenya_ward_updates(created_at);
     `);
 
     console.log("✅ Ward updates indexes created successfully.");

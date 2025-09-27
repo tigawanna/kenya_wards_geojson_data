@@ -3,8 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"init-sqlite": "tsx src/sqlite-spatialite/insert_all.ts",
-		"ward-cli": "tsx src/sqlite-spatialite/ward-events/cli.ts",
+		"init-sqlite": "vitest run && tsx src/sqlite-spatialite/init_sqlite_db.ts",
 		"test": "vitest",
 		"test:run": "vitest run",
 		"test:coverage": "vitest run --coverage",

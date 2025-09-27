@@ -56,7 +56,7 @@ export const wardEvents = sqliteTable("kenya_ward_events", {
 
 
 // Drizzle table schema with custom type for data array
-export const wardUpdates = sqliteTable("ward_updates", {
+export const wardUpdates = sqliteTable("kenya_ward_updates", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   version: integer("version").notNull(),
   data: text("data").$type<WardUpdateData[]>().notNull(), // Custom type for JSON array

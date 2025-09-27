@@ -28,7 +28,7 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     expect(tableNames).toContain("kenya_wards");
     expect(tableNames).toContain("country");
     expect(tableNames).toContain("kenya_ward_events");
-    expect(tableNames).toContain("ward_updates");
+    expect(tableNames).toContain("kenya_ward_updates");
     expect(tableNames).toContain("_meta");
   });
 
@@ -110,8 +110,8 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     expect(triggers.length).toBe(3);
   });
 
-  it("should have correct columns in ward_updates table", () => {
-    const columns = db.prepare("PRAGMA table_info(ward_updates)").all() as any[];
+  it("should have correct columns in kenya_ward_updates table", () => {
+    const columns = db.prepare("PRAGMA table_info(kenya_ward_updates)").all() as any[];
     const columnNames = columns.map(c => c.name);
 
     expect(columnNames).toContain("id");
@@ -135,14 +135,14 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     expect(indexNames).toContain("idx_ward_events_event_type");
   });
 
-  it("should have ward_updates indexes created", () => {
+  it("should have kenya_ward_updates indexes created", () => {
     const indexes = db.prepare(`
       SELECT name FROM sqlite_master 
-      WHERE type='index' AND tbl_name='ward_updates'
+      WHERE type='index' AND tbl_name='kenya_ward_updates'
     `).all() as { name: string }[];
 
     const indexNames = indexes.map(i => i.name);
-    expect(indexNames).toContain("idx_ward_updates_version");
-    expect(indexNames).toContain("idx_ward_updates_created_at");
+    expect(indexNames).toContain("idx_kenya_ward_updates_version");
+    expect(indexNames).toContain("idx_kenya_ward_updates_created_at");
   });
 });
