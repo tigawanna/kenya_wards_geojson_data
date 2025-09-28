@@ -12,6 +12,7 @@ import {
 } from '@/sqlite-spatialite/wards/ward-query-helpers.js';
 import { TEST_DB_PATH } from "@tests/constants.js";
 
+import { knownLocations } from "@/data/mock-coordinates.js";
 
 describe('SQLite Spatialite Ward Queries', () => {
   let db: any;
@@ -22,33 +23,25 @@ describe('SQLite Spatialite Ward Queries', () => {
   });
 
   describe('findWardByPoint', () => {
-    it('should find the correct ward for Nairobi coordinates', () => {
-      const [nairobiLat, nairobiLng] = [-1.286389, 36.817223];
-      const ward = findWardByPoint(db, nairobiLat, nairobiLng);
-      
-      expect(ward).toBeDefined();
-      expect(ward).not.toBeNull();
-      if (ward) {
-        expect(ward.county.toLowerCase()).toBe('nairobi');
-      }
-    });
+    knownLocations.slice(0, 2).forEach((location) => {
+      it(`should find the correct ward for ${location.name}`, () => {
+        const [lat, lng] = location.coordinates;
+        const ward = findWardByPoint(db, lat, lng);
 
-    it('should find the correct ward for Kiambu coordinates', () => {
-      const [kiambuLat, kiambuLng] = [-1.16972893282049, 36.82946781044468];
-      const ward = findWardByPoint(db, kiambuLat, kiambuLng);
-      
-      expect(ward).toBeDefined();
-      expect(ward).not.toBeNull();
-      if (ward) {
-        expect(ward.county.toLowerCase()).toBe('kiambu');
-      }
+        expect(ward).toBeDefined();
+        expect(ward).not.toBeNull();
+        expect(ward?.ward.toLocaleLowerCase()).toBe(location.expected.ward.toLowerCase())
+        if (ward) {
+          expect(ward.county.toLowerCase()).toBe(location.expected.county);
+        }
+      });
     });
   });
 
   describe('findNearestWard', () => {
-    it('should find the nearest ward for Kalama coordinates', () => {
-      const [kalamaLat, kalamaLng] = [-1.6725405427262028, 37.25285675999058];
-      const ward = findNearestWard(db, kalamaLat, kalamaLng);
+    it(`should find the nearest ward for ${knownLocations[2].name}`, () => {
+      const [lat, lng] = knownLocations[2].coordinates;
+      const ward = findNearestWard(db, lat, lng);
       
       expect(ward).toBeDefined();
       expect(ward).not.toBeNull();
@@ -59,9 +52,9 @@ describe('SQLite Spatialite Ward Queries', () => {
   });
 
   describe('findWardSmart', () => {
-    it('should find the correct ward for Machakos coordinates', () => {
-      const [machakosLat, machakosLng] = [-0.8540481379611513, 37.69510191590412];
-      const ward = findWardSmart(db, machakosLat, machakosLng);
+    it(`should find the correct ward for ${knownLocations[3].name}`, () => {
+      const [lat, lng] = knownLocations[3].coordinates;
+      const ward = findWardSmart(db, lat, lng);
       
       expect(ward).toBeDefined();
       expect(ward).not.toBeNull();
@@ -69,15 +62,14 @@ describe('SQLite Spatialite Ward Queries', () => {
   });
 
   describe('findWardsWithinDistance', () => {
-    it('should find wards within 2000 meters of Kiambu coordinates', () => {
-      const [kiambuLat, kiambuLng] = [-1.16972893282049, 36.82946781044468];
-      const wards = findWardsWithinDistance(db, kiambuLat, kiambuLng, 2000);
+    it(`should find wards within 2000 meters of ${knownLocations[1].name}`, () => {
+      const [lat, lng] = knownLocations[1].coordinates;
+      const wards = findWardsWithinDistance(db, lat, lng, 2000);
       
       expect(wards).toBeDefined();
       expect(Array.isArray(wards)).toBe(true);
       expect(wards.length).toBeGreaterThan(0);
       
-      // Check that all wards have distance property
       wards.forEach(ward => {
         expect(ward).toHaveProperty('distance');
         expect(ward.distance).toBeGreaterThanOrEqual(0);
@@ -86,22 +78,22 @@ describe('SQLite Spatialite Ward Queries', () => {
   });
 
   describe('findWardsByCounty', () => {
-    it('should find all wards in Nairobi county', () => {
-      const wards = findWardsByCounty(db, 'Nairobi');
+    it(`should find all wards in ${knownLocations[0].expected.county} county`, () => {
+      const county = knownLocations[0].expected.county;
+      const wards = findWardsByCounty(db, county);
       
       expect(wards).toBeDefined();
       expect(Array.isArray(wards)).toBe(true);
       expect(wards.length).toBeGreaterThan(0);
       
-      // Check that all wards are in Nairobi
       wards.forEach(ward => {
-        expect(ward.county.toLowerCase()).toBe('nairobi');
+        expect(ward.county.toLowerCase()).toBe(county);
       });
     });
   });
 
   describe('findWardsInBoundingBox', () => {
-    it('should find wards in a bounding box around Nairobi', () => {
+    it(`should find wards in a bounding box around ${knownLocations[0].name}`, () => {
       const wards = findWardsInBoundingBox(db, -1.35, 36.7, -1.2, 36.9);
       
       expect(wards).toBeDefined();
