@@ -173,6 +173,7 @@ export async function createTriggers(db: Database.Database) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   (async () => {
     const { db } = initDb();
+    console.log("=== manually running create triggres == ");
     try {
       await createTriggers(db);
     } catch (error) {

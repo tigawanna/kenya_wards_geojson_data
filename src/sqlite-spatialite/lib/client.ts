@@ -3,21 +3,27 @@ import type { Database as BetterSqliteType } from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
-export function initDb(name?: string, tearDown?: boolean): {
+export function initDb(
+  name?: string,
+  tearDown?: boolean
+): {
   db: BetterSqliteType;
 } {
   const basedbPath = `src/data`;
-  const dbPath = name ? basedbPath + "/" + name : basedbPath + "/kenya_wards.db";
-  
+  const dbPath = name ? basedbPath + "/" + name : basedbPath + "/geo_kenya.db";
+
   if (tearDown && fs.existsSync(dbPath)) {
     fs.unlinkSync(dbPath);
   }
-  
+
   const dir = path.dirname(dbPath);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  
+
+  console.log("===================== =========================");
+  console.log("==========  🔌 Connecting to database at =========== :: ", dbPath);
+  console.log("===================== =======================\n");
   const db = new Database(dbPath);
 
   // Load the SpatiaLite extension

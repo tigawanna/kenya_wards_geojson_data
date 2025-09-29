@@ -11,6 +11,7 @@ export interface Ward {
   constituency: string;
   constituencyCode: number;
   geometry: string; // GeoJSON string
+  distance: number;
 }
 
 export interface OptimizedWard {
@@ -136,8 +137,7 @@ export function findNearestWard(
     LIMIT 1
   `);
   const result = stmt.get(longitude, latitude, longitude, latitude) as
-    | (Ward & { distance: number })
-    | null;
+       | null;
   return result || null;
 }
 
@@ -180,7 +180,7 @@ export function findWardSmart(
   db: Database,
   latitude: number,
   longitude: number
-): Ward | (Ward & { distance: number }) | null {
+): Ward | null {
   let ward = findWardByPoint(db, latitude, longitude);
   if (!ward) {
     ward = findNearestWard(db, latitude, longitude);

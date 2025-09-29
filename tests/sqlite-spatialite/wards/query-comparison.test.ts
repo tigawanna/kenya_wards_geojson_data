@@ -32,7 +32,7 @@ describe('SQLite Spatialite Ward Queries', () => {
         expect(ward).not.toBeNull();
         expect(ward?.ward.toLocaleLowerCase()).toBe(location.expected.ward.toLowerCase())
         if (ward) {
-          expect(ward.county.toLowerCase()).toBe(location.expected.county);
+          expect(ward.county.toLowerCase()).toBe(location.expected.county.toLowerCase());
         }
       });
     });
@@ -87,7 +87,7 @@ describe('SQLite Spatialite Ward Queries', () => {
       expect(wards.length).toBeGreaterThan(0);
       
       wards.forEach(ward => {
-        expect(ward.county.toLowerCase()).toBe(county);
+        expect(ward.county.toLowerCase()).toBe(county.toLocaleLowerCase());
       });
     });
   });

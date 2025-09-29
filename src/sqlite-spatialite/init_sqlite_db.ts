@@ -9,6 +9,7 @@ import { createWardUpdatesTable } from "./ward-events/create_ward_updates.js";
 export async function setupDb(db: Database.Database) {
   // Create triggers after inserting data
   try {
+    console.log("\n ============ createing  database =========== \n\n");
     await createAndInsertCountry(db);
     await createAndInsertWards(db);
     await createWardUpdatesTable(db);
@@ -21,7 +22,23 @@ export async function setupDb(db: Database.Database) {
   // Don't close the DB connection here as the caller will manage it
 }
 
-async function main() {
-  setupDb(initDb("geo_kenya.db", true).db);
+if (import.meta.url === `file://${process.argv[1]}`) {
+  async () => {
+    setupDb(initDb("geo_kenya.db", true).db);
+  };
 }
-main().catch(console.error);
+
+// Run the function if this script is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  (async () => {
+    const { db } = initDb("geo_kenya.db", true);
+    try {
+      await setupDb(db);
+    } catch (error) {
+      console.error("Error in init sqlite table script:", error);
+      process.exit(1);
+    } finally {
+      db.close();
+    }
+  })();
+}
