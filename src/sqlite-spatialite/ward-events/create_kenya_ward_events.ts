@@ -1,7 +1,6 @@
 import type Database from "better-sqlite3";
 
 export async function createWardEventsTable(db: Database.Database) {
-  //   const { db } = initDb();
 
   try {
     db.exec(`

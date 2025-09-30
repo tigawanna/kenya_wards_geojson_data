@@ -22,15 +22,15 @@ export const kenyaWards = sqliteTable("kenya_wards", {
   geom: multiPolygon("geom"), // ← this is correct for WKB geometry
 });
 
-export const country = sqliteTable("kenya_country", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  shapeName: text("shape_name").notNull(),
-  shapeIso: text("shape_iso").notNull(),
-  shapeId: text("shape_id"),
-  shapeGroup: text("shape_group"),
-  shapeType: text("shape_type"),
-  geom: multiPolygon("geom"), // ← WKB geometry for country borders
-});
+// export const country = sqliteTable("kenya_country", {
+//   id: integer("id").primaryKey({ autoIncrement: true }),
+//   shapeName: text("shape_name").notNull(),
+//   shapeIso: text("shape_iso").notNull(),
+//   shapeId: text("shape_id"),
+//   shapeGroup: text("shape_group"),
+//   shapeType: text("shape_type"),
+//   geom: multiPolygon("geom"), // ← WKB geometry for country borders
+// });
 
 export const wardEvents = sqliteTable("kenya_ward_events", {
   id: text("id")
@@ -84,7 +84,7 @@ export interface WardUpdateData {
 
 
 // Infer the select types
+// export type CountrySelect = InferSelectModel<typeof country>;
 export type KenyaWardsSelect = InferSelectModel<typeof kenyaWards>;
-export type CountrySelect = InferSelectModel<typeof country>;
 export type WardEventsSelect = InferSelectModel<typeof wardEvents>;
 export type WardUpdatesSelect = InferSelectModel<typeof wardUpdates>;
