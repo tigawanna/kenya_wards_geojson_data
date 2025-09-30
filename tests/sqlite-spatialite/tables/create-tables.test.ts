@@ -78,6 +78,8 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     expect(columnNames).toContain("sync_status");
     expect(columnNames).toContain("sync_attempts");
     expect(columnNames).toContain("last_sync_attempt");
+    expect(columnNames).toContain("created_at");
+    expect(columnNames).toContain("updated_at");
     expect(columnNames).toContain("error_message");
     expect(columnNames).toContain("client_id");
   });
@@ -107,7 +109,9 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     expect(triggerNames).toContain("ward_insert_trigger");
     expect(triggerNames).toContain("ward_update_trigger");
     expect(triggerNames).toContain("ward_delete_trigger");
-    expect(triggers.length).toBe(3);
+    expect(triggerNames).toContain("update_ward_events_timestamp");
+    expect(triggerNames).toContain("update_ward_updates_timestamp");
+    expect(triggers.length).toBe(5);
   });
 
   it("should have correct columns in kenya_ward_updates table", () => {
@@ -118,6 +122,7 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     expect(columnNames).toContain("version");
     expect(columnNames).toContain("data");
     expect(columnNames).toContain("created_at");
+    expect(columnNames).toContain("updated_at");
     expect(columnNames).toContain("created_by");
     expect(columnNames).toContain("description");
   });
@@ -144,5 +149,20 @@ describe("Database Tables and Schema", { sequential: true }, () => {
     const indexNames = indexes.map(i => i.name);
     expect(indexNames).toContain("idx_kenya_ward_updates_version");
     expect(indexNames).toContain("idx_kenya_ward_updates_created_at");
+  });
+
+  it("should have all triggers created", () => {
+    const allTriggers = db.prepare(`
+      SELECT name FROM sqlite_master 
+      WHERE type='trigger'
+    `).all() as { name: string }[];
+
+    const triggerNames = allTriggers.map(t => t.name);
+    expect(triggerNames).toContain("ward_insert_trigger");
+    expect(triggerNames).toContain("ward_update_trigger");
+    expect(triggerNames).toContain("ward_delete_trigger");
+    expect(triggerNames).toContain("update_ward_events_timestamp");
+    expect(triggerNames).toContain("update_ward_updates_timestamp");
+    expect(allTriggers.length).toBe(5);
   });
 });

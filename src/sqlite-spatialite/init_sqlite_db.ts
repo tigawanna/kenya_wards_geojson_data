@@ -1,7 +1,7 @@
 import { createAndInsertWards } from "./wards/insert-wards.js";
 import { createAndInsertCountry } from "./country/insert-country.js";
 import { initDb } from "./lib/client.js";
-import { createTriggers } from "./ward-events/create-triggers.js";
+import { createTriggers } from "./ward-events/create_ward_event_triggers.js";
 import { createWardEventsTable } from "./ward-events/create_kenya_ward_events.js";
 import type Database from "better-sqlite3";
 import { createWardUpdatesTable } from "./ward-events/create_ward_updates.js";

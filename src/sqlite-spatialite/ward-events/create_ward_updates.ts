@@ -43,6 +43,7 @@ export async function createWardUpdatesTable(db: Database.Database) {
         version INTEGER NOT NULL,
         data TEXT NOT NULL, -- JSON array of ward update objects
         created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
         created_by TEXT,
         description TEXT
       );
@@ -57,6 +58,18 @@ export async function createWardUpdatesTable(db: Database.Database) {
     `);
 
     console.log("✅ Ward updates indexes created successfully.");
+
+    // Create trigger to automatically update updated_at
+    db.exec(`
+      CREATE TRIGGER IF NOT EXISTS update_ward_updates_timestamp
+      AFTER UPDATE ON kenya_ward_updates
+      FOR EACH ROW
+      BEGIN
+        UPDATE kenya_ward_updates SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    console.log("✅ Ward updates timestamp trigger created successfully.");
 
   } catch (error) {
     console.error("💥 Error creating ward updates table:", error);

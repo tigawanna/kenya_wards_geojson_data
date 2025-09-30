@@ -52,6 +52,12 @@ export const wardEvents = sqliteTable("kenya_ward_events", {
   lastSyncAttempt: text("last_sync_attempt"),
   errorMessage: text("error_message"),
   clientId: text("client_id"), // Identifies which client created the event
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 });
 
 
@@ -63,6 +69,9 @@ export const wardUpdates = sqliteTable("kenya_ward_updates", {
   createdAt: text("created_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),  
   createdBy: text("created_by"),
   description: text("description"),
 });

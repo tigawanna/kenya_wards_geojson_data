@@ -17,6 +17,8 @@ export async function createWardEventsTable(db: Database.Database) {
         sync_status TEXT NOT NULL DEFAULT 'PENDING' CHECK(sync_status IN ('PENDING', 'SYNCED', 'FAILED')),
         sync_attempts INTEGER NOT NULL DEFAULT 0,
         last_sync_attempt TEXT,
+        created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+        updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
         error_message TEXT,
         client_id TEXT
       );
@@ -33,6 +35,18 @@ export async function createWardEventsTable(db: Database.Database) {
     `);
 
     console.log("\n✅ Indexes created successfully.");
+
+    // Create trigger to automatically update updated_at
+    db.exec(`
+      CREATE TRIGGER IF NOT EXISTS update_ward_events_timestamp
+      AFTER UPDATE ON kenya_ward_events
+      FOR EACH ROW
+      BEGIN
+        UPDATE kenya_ward_events SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+      END;
+    `);
+
+    console.log("\n✅ Update timestamp trigger created successfully.");
   } catch (error) {
     console.error("\n💥 Error creating ward events table:", error);
     throw error;
